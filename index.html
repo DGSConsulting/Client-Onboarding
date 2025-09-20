@@ -26,8 +26,36 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+        .progress-step.active {
+            background-color: #9CAF88;
+            color: white;
+        }
+        .progress-step.completed {
+            background-color: #6B8E5A;
+            color: white;
+        }
         h1, h2 {
             color: #9CAF88;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
         }
         form {
             display: flex;
@@ -43,20 +71,34 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        button {
+        input:invalid, textarea:invalid, select:invalid {
+            border-color: #ff6b6b;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
             margin-top: 20px;
-            padding: 10px;
+        }
+        button {
+            padding: 10px 20px;
             background-color: #9CAF88;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #6B8E5A;
         }
-        .step {
-            margin-bottom: 30px;
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .error {
+            color: #ff6b6b;
+            font-size: 0.9em;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -66,29 +108,43 @@
         <p>Please fill out the form below to get started.</p>
     </header>
     <div class="container">
-        <div class="step">
-            <h2>Step 1: Personal Information</h2>
-            <form id="onboardingForm">
+        <div class="progress-bar">
+            <div class="progress-step active" id="step1-indicator">1. Personal Info</div>
+            <div class="progress-step" id="step2-indicator">2. Project Details</div>
+            <div class="progress-step" id="step3-indicator">3. Documents</div>
+            <div class="progress-step" id="step4-indicator">4. Review & Submit</div>
+        </div>
+
+        <form id="onboardingForm">
+            <div class="step active" id="step1">
+                <h2>Step 1: Personal Information</h2>
                 <label for="name">Full Name:</label>
                 <input type="text" id="name" name="name" required>
+                <div class="error" id="name-error"></div>
 
                 <label for="email">Email Address:</label>
                 <input type="email" id="email" name="email" required>
+                <div class="error" id="email-error"></div>
 
                 <label for="phone">Phone Number:</label>
-                <input type="tel" id="phone" name="phone">
+                <input type="tel" id="phone" name="phone" required>
+                <div class="error" id="phone-error"></div>
 
                 <label for="company">Company Name:</label>
                 <input type="text" id="company" name="company">
 
                 <label for="role">Your Role:</label>
                 <input type="text" id="role" name="role">
-        </div>
 
-        <div class="step">
-            <h2>Step 2: Project Details</h2>
+                <div class="button-group">
+                    <button type="button" id="next1" disabled>Next</button>
+                </div>
+            </div>
+
+            <div class="step" id="step2">
+                <h2>Step 2: Project Details</h2>
                 <label for="projectType">Project Type:</label>
-                <select id="projectType" name="projectType">
+                <select id="projectType" name="projectType" required>
                     <option value="">Select...</option>
                     <option value="web">Web Development</option>
                     <option value="mobile">Mobile App</option>
@@ -96,41 +152,265 @@
                     <option value="consulting">Consulting</option>
                     <option value="other">Other</option>
                 </select>
+                <div class="error" id="projectType-error"></div>
 
                 <label for="timeline">Expected Timeline:</label>
-                <input type="text" id="timeline" name="timeline" placeholder="e.g., 3 months">
+                <input type="text" id="timeline" name="timeline" required placeholder="e.g., 3 months">
+                <div class="error" id="timeline-error"></div>
 
                 <label for="budget">Budget Range:</label>
-                <select id="budget" name="budget">
+                <select id="budget" name="budget" required>
                     <option value="">Select...</option>
                     <option value="under5k">Under $5,000</option>
                     <option value="5k-10k">$5,000 - $10,000</option>
                     <option value="10k-25k">$10,000 - $25,000</option>
                     <option value="over25k">Over $25,000</option>
                 </select>
+                <div class="error" id="budget-error"></div>
 
                 <label for="description">Project Description:</label>
-                <textarea id="description" name="description" rows="4" placeholder="Describe your project..."></textarea>
-        </div>
+                <textarea id="description" name="description" rows="4" required placeholder="Describe your project..."></textarea>
+                <div class="error" id="description-error"></div>
 
-        <div class="step">
-            <h2>Step 3: Additional Information</h2>
+                <div class="button-group">
+                    <button type="button" id="prev2">Previous</button>
+                    <button type="button" id="next2" disabled>Next</button>
+                </div>
+            </div>
+
+            <div class="step" id="step3">
+                <h2>Step 3: Documents</h2>
                 <label for="referral">How did you hear about us?</label>
                 <input type="text" id="referral" name="referral">
 
                 <label for="specialRequirements">Special Requirements or Notes:</label>
                 <textarea id="specialRequirements" name="specialRequirements" rows="3"></textarea>
 
-                <button type="submit">Submit Onboarding Form</button>
-            </form>
-        </div>
+                <label for="documents">Upload Documents (optional):</label>
+                <input type="file" id="documents" name="documents" multiple accept=".pdf,.doc,.docx,.jpg,.png">
+
+                <label for="terms">
+                    <input type="checkbox" id="terms" name="terms" required> I agree to the terms and conditions
+                </label>
+                <div class="error" id="terms-error"></div>
+
+                <div class="button-group">
+                    <button type="button" id="prev3">Previous</button>
+                    <button type="button" id="next3" disabled>Next</button>
+                </div>
+            </div>
+
+            <div class="step" id="step4">
+                <h2>Step 4: Review & Submit</h2>
+                <div id="review-content"></div>
+
+                <div class="button-group">
+                    <button type="button" id="prev4">Previous</button>
+                    <button type="submit" id="submit-btn">Submit Onboarding Form</button>
+                </div>
+            </div>
+        </form>
     </div>
 
     <script>
-        document.getElementById('onboardingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for submitting your onboarding information! We will contact you soon.');
-            // Here you could add code to send the form data to a server
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        // Load saved data from localStorage
+        function loadSavedData() {
+            const savedData = localStorage.getItem('onboardingData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                Object.keys(data).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            element.checked = data[key];
+                        } else {
+                            element.value = data[key];
+                        }
+                    }
+                });
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            const formData = new FormData(document.getElementById('onboardingForm'));
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            // Handle checkbox
+            data.terms = document.getElementById('terms').checked;
+            localStorage.setItem('onboardingData', JSON.stringify(data));
+        }
+
+        // Validate current step
+        function validateStep(step) {
+            const errors = document.querySelectorAll(`#step${step} .error`);
+            errors.forEach(error => error.textContent = '');
+
+            let isValid = true;
+
+            if (step === 1) {
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+
+                if (!name) {
+                    document.getElementById('name-error').textContent = 'Name is required';
+                    isValid = false;
+                }
+                if (!email || !/\S+@\S+\.\S+/.test(email)) {
+                    document.getElementById('email-error').textContent = 'Valid email is required';
+                    isValid = false;
+                }
+                if (!phone) {
+                    document.getElementById('phone-error').textContent = 'Phone number is required';
+                    isValid = false;
+                }
+            } else if (step === 2) {
+                const projectType = document.getElementById('projectType').value;
+                const timeline = document.getElementById('timeline').value.trim();
+                const budget = document.getElementById('budget').value;
+                const description = document.getElementById('description').value.trim();
+
+                if (!projectType) {
+                    document.getElementById('projectType-error').textContent = 'Project type is required';
+                    isValid = false;
+                }
+                if (!timeline) {
+                    document.getElementById('timeline-error').textContent = 'Timeline is required';
+                    isValid = false;
+                }
+                if (!budget) {
+                    document.getElementById('budget-error').textContent = 'Budget is required';
+                    isValid = false;
+                }
+                if (!description) {
+                    document.getElementById('description-error').textContent = 'Description is required';
+                    isValid = false;
+                }
+            } else if (step === 3) {
+                const terms = document.getElementById('terms').checked;
+                if (!terms) {
+                    document.getElementById('terms-error').textContent = 'You must agree to the terms';
+                    isValid = false;
+                }
+            }
+
+            return isValid;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            for (let i = 1; i <= totalSteps; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                indicator.classList.remove('active', 'completed');
+                if (i < currentStep) {
+                    indicator.classList.add('completed');
+                } else if (i === currentStep) {
+                    indicator.classList.add('active');
+                }
+            }
+        }
+
+        // Show step
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+            updateProgress();
+            updateButtons();
+        }
+
+        // Update button states
+        function updateButtons() {
+            const nextBtn = document.getElementById(`next${currentStep}`);
+            const prevBtn = document.getElementById(`prev${currentStep}`);
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (nextBtn) {
+                nextBtn.disabled = !validateStep(currentStep);
+            }
+            if (prevBtn) {
+                prevBtn.disabled = currentStep === 1;
+            }
+            if (submitBtn) {
+                submitBtn.disabled = !validateStep(4);
+            }
+        }
+
+        // Generate review content
+        function generateReview() {
+            const reviewContent = document.getElementById('review-content');
+            const data = JSON.parse(localStorage.getItem('onboardingData') || '{}');
+
+            reviewContent.innerHTML = `
+                <h3>Personal Information</h3>
+                <p><strong>Name:</strong> ${data.name || ''}</p>
+                <p><strong>Email:</strong> ${data.email || ''}</p>
+                <p><strong>Phone:</strong> ${data.phone || ''}</p>
+                <p><strong>Company:</strong> ${data.company || ''}</p>
+                <p><strong>Role:</strong> ${data.role || ''}</p>
+
+                <h3>Project Details</h3>
+                <p><strong>Project Type:</strong> ${data.projectType || ''}</p>
+                <p><strong>Timeline:</strong> ${data.timeline || ''}</p>
+                <p><strong>Budget:</strong> ${data.budget || ''}</p>
+                <p><strong>Description:</strong> ${data.description || ''}</p>
+
+                <h3>Additional Information</h3>
+                <p><strong>Referral:</strong> ${data.referral || ''}</p>
+                <p><strong>Special Requirements:</strong> ${data.specialRequirements || ''}</p>
+                <p><strong>Terms Agreed:</strong> ${data.terms ? 'Yes' : 'No'}</p>
+            `;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedData();
+            updateProgress();
+            updateButtons();
+
+            // Next buttons
+            for (let i = 1; i < totalSteps; i++) {
+                document.getElementById(`next${i}`).addEventListener('click', function() {
+                    if (validateStep(currentStep)) {
+                        saveData();
+                        showStep(currentStep + 1);
+                        if (currentStep === 4) {
+                            generateReview();
+                        }
+                    }
+                });
+            }
+
+            // Previous buttons
+            for (let i = 2; i <= totalSteps; i++) {
+                document.getElementById(`prev${i}`).addEventListener('click', function() {
+                    showStep(currentStep - 1);
+                });
+            }
+
+            // Input validation on change
+            document.querySelectorAll('input, select, textarea').forEach(element => {
+                element.addEventListener('input', function() {
+                    saveData();
+                    updateButtons();
+                });
+            });
+
+            // Form submission
+            document.getElementById('onboardingForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (validateStep(4)) {
+                    alert('Thank you for submitting your onboarding information! We will contact you soon.');
+                    localStorage.removeItem('onboardingData');
+                    // Here you could add code to send the form data to a server
+                }
+            });
         });
     </script>
 </body>
